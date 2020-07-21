@@ -10,18 +10,18 @@ import matplotlib.pyplot as plt
 from datetime import date
 import numpy as np
 
-
+# solve chinese font problem
 from pylab import mpl
-
-mpl.rcParams['font.sans-serif'] = ['FangSong'] # 指定默认字体
-mpl.rcParams['axes.unicode_minus'] = False # 解决保存图像是负号'-'显示为方块的问题
-
-
-TOKEN = 'C:/Users/TSHOG/Documents/__Codes__/Google-Calendar-Scripts/ignore/token.pickle'
-CREDENTIALS = 'C:/Users/TSHOG/Documents/__Codes__/Google-Calendar-Scripts/ignore/credentials.json'
+mpl.rcParams['font.sans-serif'] = ['FangSong']
+mpl.rcParams['axes.unicode_minus'] = False 
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+
+# need to change
+TOKEN = 'C:/Users/TSHOG/Documents/__Codes__/Google-Calendar-Scripts/ignore/token.pickle'
+CREDENTIALS = 'C:/Users/TSHOG/Documents/__Codes__/Google-Calendar-Scripts/ignore/credentials.json'
+
 
 def getTimeList(day, categoryList):
     '''
@@ -213,7 +213,7 @@ def survey(results, category_names):
         labels.append(getDate(int(day)))
     data = np.array(list(results.values()))
     data_cum = data.cumsum(axis=1)
-    category_colors = plt.get_cmap('twilight')(
+    category_colors = plt.get_cmap('tab20c')(
         np.linspace(0.15, 0.85, data.shape[1]))
 
     fig, ax = plt.subplots(figsize=(9.2, 5))
@@ -230,6 +230,7 @@ def survey(results, category_names):
 
         r, g, b, _ = color
         text_color = 'white' if r * g * b < 0.5 else 'darkgrey'
+        text_color = 'black'
         for y, (x, c) in enumerate(zip(xcenters, widths)):
             ax.text(x, y, str(int(c)), ha='center', va='center',
                     color=text_color)
