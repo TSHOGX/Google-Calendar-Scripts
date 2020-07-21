@@ -5,7 +5,9 @@ import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+
 import matplotlib.pyplot as plt
+from datetime import date
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
@@ -13,32 +15,54 @@ SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
 def main():
     service = initialize()
-    categoryIdList = getCategoriesId(service)
+    categoryList = getCategoryList(service)
+    day, daylist = getDaylist()
+    print("Today's date:", day,daylist)
+    print('#', categoryList[1], ': ')
+
+    daydict = {}
+    for day in daylist:
+        # daydict: {day:[list store every category's total time]} [timeList]
+        # return timeList [list store every category's total time]
+        # traverse all category, count category time for this day
+        daydict[str(day)] = getDict(day, categoryList) # timeList
 
 
-    print('----Show summaries for every category----')
-    page_token = None
-    # traverse all category
-    timeList = [] # time list for every category
-    for i in range(len(categoryIdList)):
-        categoryId = categoryIdList[i]
-        # for each category
-        while True:
-            categories = service.events().list(calendarId=categoryId, pageToken=page_token).execute()
+    # page_token = None
+    # daydict = {}
+    # for day in daylist:
+    #     timeList = []
 
-            # iterate every event in this category
-            print('#', categories['summary'], ': ')
-            time = 0
-            for event in categories['items']:
-                print('   ', event['summary'], timeCalculator(event))
-                time += timeCalculator(event)
-            timeList.append(time)
+    #     # traverse all category
+    #     for i in range(len(categoryIdList)):
+    #         categoryId = categoryIdList[i]
+    #         # for each category
+    #         page_token = None
+    #         while True:
+    #             categories = service.events().list(calendarId=categoryId, pageToken=page_token).execute()
+    #             # traverse all event in this day in this category
+    #             print('#', categories, ': ')
+    #             time = 0
+    #             daylist = []
+    #             for event in categories['items']:
+    #                 day, daystr = getDay(event['start']['dateTime'])
+    #                 print(day,daystr)
+    #                 # print('   ', event['summary'], timeCalculator(event))
+    #                 time += timeCalculator(event)
+    #             print('    total time:', time)
+    #             timeList.append(time)
+                
+    #             daydict[str(day)] = timeList
+    #             print(daydict[str(day)])
 
-            page_token = categories.get('nextPageToken')
-            if not page_token:
-                break
-    print('----', len(categoryIdList),'category down----')
+
+    #             page_token = categories.get('nextPageToken')
+    #             if not page_token:
+    #                 break
     
+    
+    
+    return
 
 
 
@@ -87,6 +111,35 @@ def getCategoriesId(service):
             break
     return categoryIdList
 
+def getCategoryList(service):
+    # list of all category, can call events in them
+    # event: for event in categories['items']: item is list of calendar#events
+    # title: categories['summary']
+    page_token = None
+    categoryIdList = getCategoriesId(service)
+    categories = []
+    for i in range(len(categoryIdList)):
+        categoryId = categoryIdList[i]
+        # for each category
+        while True:
+            categories.append(service.events().list(calendarId=categoryId, pageToken=page_token).execute())
+            page_token = categories[-1].get('nextPageToken')
+            if not page_token:
+                break
+    return categories
+
+
+def getDaylist():
+    '''
+    get today and initial daylist
+    '''
+    today = str(date.today())
+    day, daystr = getDay(today)
+    daylist = []
+    for i in range(day-6,day+1):
+        daylist.append(i)
+    return day, daylist
+
 
 def timeCalculator(event):
     '''
@@ -105,6 +158,30 @@ def timeCalculator(event):
     lastMinute = (int(eHour) * 60 + int(eMinute)) - (int(sHour) * 60 + int(sMinute))
     lastHour = lastMinute / 60
     return lastHour
+
+
+def getDay(timestamp):
+    '''
+    get day number in this year: 0-366 or 0-365
+    return the number of this event
+    '''
+    year = int(timestamp[0:4])
+    month = int(timestamp[5:7])
+    day = int(timestamp[8:10])
+    
+    if year % 4 == 0:
+        Feb = 29
+    else:
+        Feb = 28
+    mlist = [31,Feb,31,30,31,30,31,31,30,31,30,31]
+
+    count = day
+    for i in range(month-1):
+        count += mlist[i]
+    parts = [str(month), '.', str(day)]
+    daystr = ''.join(parts)
+    return count, daystr
+
 
 
 def plotThisWeek(labels, category):
