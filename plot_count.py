@@ -126,7 +126,7 @@ def timeCalculator(event):
     eHour = endTime[11:13]
     eMinute = endTime[14:16]
     # eSecond = endTime[17:19]
-    lastMinute = (int(eHour) * 60 + int(eMinute)) - (int(sHour) * 60 + int(sMinute))
+    lastMinute = abs((int(eHour) * 60 + int(eMinute)) - (int(sHour) * 60 + int(sMinute)))
     lastHour = lastMinute / 60
     return lastHour
 
@@ -166,6 +166,7 @@ def plotThisWeek(daydict,cats):
         daydict[day].append(el)
 
     results = daydict
+    # print(results, category_names)
 
     survey(results, category_names)
     plt.show()
@@ -224,18 +225,16 @@ def survey(results, category_names):
     for i, (colname, color) in enumerate(zip(category_names, category_colors)):
         widths = data[:, i]
         starts = data_cum[:, i] - widths
-        ax.barh(labels, widths, left=starts, height=0.5,
-                label=colname, color=color)
+        ax.barh(labels, widths, left=starts, height=0.5, label=colname, color=color)
         xcenters = starts + widths / 2
 
         r, g, b, _ = color
-        text_color = 'white' if r * g * b < 0.5 else 'darkgrey'
+        # text_color = 'white' if r * g * b < 0.5 else 'darkgrey'
         text_color = 'black'
         for y, (x, c) in enumerate(zip(xcenters, widths)):
             ax.text(x, y, str(int(c)), ha='center', va='center',
                     color=text_color)
-    ax.legend(ncol=len(category_names), bbox_to_anchor=(0, 1),
-            loc='lower left', fontsize='small')
+    ax.legend(ncol=len(category_names), bbox_to_anchor=(0, 1), loc='lower left', fontsize='small')
 
     return fig, ax
 
